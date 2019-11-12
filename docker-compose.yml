@@ -1,0 +1,13 @@
+
+version: "3"
+
+services:
+  app:
+    image: snaksa/youtube-mp3-download
+    build:
+      context: .
+    container_name: nodejs-server
+    volumes:
+     - ./server.js:/usr/src/app/server.js
+    ports:
+      - "9000:8080"
