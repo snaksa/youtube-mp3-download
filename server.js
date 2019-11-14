@@ -9,36 +9,38 @@ const fs = require('fs');
 const PORT = 8080;
 const HOST = '0.0.0.0';
 
+const HTTP_NO_CONTENT = 204;
+
 const app = express();
 app.use(cors());
 
 app.get('/track', (req, res) => {
     if (req.query.id) {
-        ytdl.getInfo(req.query.id, (err, info) => {
-            if (err) {
-                throw err;
-            }
-
-            let title = info.title;
-            let file = `${__dirname}/files/${title}`;
-
-            ytdl(req.query.id).pipe(
-                fs.createWriteStream(`${file}_video.mp4`)
-            ).on('finish', () => {
-                ffmpeg(`${file}_video.mp4`)
-                    .output(`${file}.mp3`)
-                    .on('end', function () {
-                        res.download(`${file}.mp3`);
-                    })
-                    .on('error', function (err) {
-                        throw err;
-                    })
-                    .run();
-            });
-        });
+        let videoId = req.query.id;
+        try {
+            const videoFile = `${videoId}_video.mp4`;
+            const trackFile = `${videoId}.mp3`;
+            ytdl(videoId).pipe(fs.createWriteStream(videoFile))
+                .on('finish', () => {
+                    ffmpeg(videoFile)
+                        .output(trackFile)
+                        .on('end', function () {
+                            res.download(trackFile);
+                        })
+                        .on('error', function (err) {
+                            res.sendStatus(HTTP_NO_CONTENT);
+                        })
+                        .run();
+                });
+        }
+        catch (ex) {
+            res.sendStatus(HTTP_NO_CONTENT);
+            return;
+        }
     }
     else {
-        res.send('Please provide track id');
+        res.sendStatus(HTTP_NO_CONTENT);
+        return;
     }
 });
 
