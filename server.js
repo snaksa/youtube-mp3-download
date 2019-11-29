@@ -20,7 +20,13 @@ app.get('/track', (req, res) => {
         try {
             const videoFile = `${videoId}_video.mp4`;
             const trackFile = `${videoId}.mp3`;
-            ytdl(videoId).pipe(fs.createWriteStream(videoFile))
+            ytdl(`https://www.youtube.com/watch?v=${videoId}`)
+                .on('error', (err) => {
+                    console.log(err);
+                    res.sendStatus(HTTP_NO_CONTENT);
+                    return;
+                })
+                .pipe(fs.createWriteStream(videoFile))
                 .on('finish', () => {
                     ffmpeg(videoFile)
                         .output(trackFile)
@@ -31,6 +37,9 @@ app.get('/track', (req, res) => {
                             res.sendStatus(HTTP_NO_CONTENT);
                         })
                         .run();
+                })
+                .on('error', (err) => {
+                    console.log(err);
                 });
         }
         catch (ex) {
