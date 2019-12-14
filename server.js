@@ -16,11 +16,14 @@ app.use(cors());
 
 app.get('/track', (req, res) => {
     if (req.query.id) {
-        let videoId = req.query.id;
+        const videoId = req.query.id;
+        const title = req.query.title;
         try {
-            const videoFile = `${videoId}_video.mp4`;
-            const trackFile = `${videoId}.mp3`;
-            ytdl(`https://www.youtube.com/watch?v=${videoId}`)
+            const name = title ? title : (new Date()).getTime();
+            const trackFile = `${name}.mp3`;
+            const videoFile = `${name}_video.mp4`;
+            const url = videoId.indexOf('youtube.com') !== -1 ? videoId : `https://www.youtube.com/watch?v=${videoId}`;
+            ytdl(url)
                 .on('error', (err) => {
                     console.log(err);
                     res.sendStatus(HTTP_NO_CONTENT);
@@ -41,6 +44,30 @@ app.get('/track', (req, res) => {
                 .on('error', (err) => {
                     console.log(err);
                 });
+        }
+        catch (ex) {
+            res.sendStatus(HTTP_NO_CONTENT);
+            return;
+        }
+    }
+    else {
+        res.sendStatus(HTTP_NO_CONTENT);
+        return;
+    }
+});
+
+app.get('/info', (req, res) => {
+    if (req.query.id) {
+        let videoId = req.query.id;
+        try {
+            const url = videoId.indexOf('youtube.com') !== -1 ? videoId : `https://www.youtube.com/watch?v=${videoId}`;
+            ytdl.getInfo(url, {}, (err, info) => {
+                const title = info.player_response.videoDetails.title;
+                const videoId = info.player_response.videoDetails.videoId;
+                const thumbnail = info.player_response.videoDetails.thumbnail.thumbnails[0].url;
+
+                res.send({ videoId, title, thumbnail })
+            });
         }
         catch (ex) {
             res.sendStatus(HTTP_NO_CONTENT);
