@@ -32,11 +32,13 @@ app.get('/track', (req, res) => {
                 .pipe(fs.createWriteStream(videoFile))
                 .on('finish', () => {
                     ffmpeg(videoFile)
+                        .format('mp3')
                         .output(trackFile)
                         .on('end', function () {
                             res.download(trackFile);
                         })
                         .on('error', function (err) {
+                            console.log(err);
                             res.sendStatus(HTTP_NO_CONTENT);
                         })
                         .run();
@@ -62,6 +64,11 @@ app.get('/info', (req, res) => {
         try {
             const url = videoId.indexOf('youtube.com') !== -1 ? videoId : `https://www.youtube.com/watch?v=${videoId}`;
             ytdl.getInfo(url, {}, (err, info) => {
+                if(err) {
+                    console.log(err);
+                    res.sendStatus(HTTP_NO_CONTENT);
+                    return;
+                }
                 const title = info.player_response.videoDetails.title;
                 const videoId = info.player_response.videoDetails.videoId;
                 const thumbnail = info.player_response.videoDetails.thumbnail.thumbnails[0].url;
