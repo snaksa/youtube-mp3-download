@@ -1,12 +1,11 @@
-
 version: "3"
 
 services:
   app:
-    image: snaksa/youtube-mp3-download
+    image: snaksa/spotify-downloader-nodejs
     build:
       context: .
-    container_name: nodejs-server
+    container_name: spotify-nodejs
     volumes:
      - ./server.js:/usr/src/app/server.js
     ports:
